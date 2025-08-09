@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Listener</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #03124c, #1a2a6c);
+      color: #333;
+      line-height: 0.1;
+      min-height: 100vh;
+    }
+    
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100vh;
+    }
+    
+    .upload-section {
+      text-align: center;
+      padding: 40px;
+      border: 3px dashed #3498db;
+      border-radius: 10px;
+      background-color: #fefefe;
+      margin-bottom: 20px;
+      width: 80%;
+      margin: auto;
+    }
+    
+    .upload-section p {
+      margin: 15px 0;
+      color: #555;
+    }
+    
+    .upload-btn {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .page-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .page-selector label {
+      margin-right: 10px;
+      font-weight: 500;
+      background-color: #fefefe;
+    }
+    
+    .page-input {
+      width: 60px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    .nav-btn {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .nav-btn:disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+    }
+    
+    .results {
+      display: none;
+      height: max-content;
+      height: min-content;
+    }
+    
+    .content-box {
+      border: 2px solid black;
+      padding: 20px;
+      background-color: #fefefe;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .content-box pre {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      display: none;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .controls {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .page-selector {
+        align-items: flex-start;
+      }
+      
+      .page-selector label {
+        margin-bottom: 5px;
+      }
+    }
+    .other {
+        background-color: #838383 !important;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .letter {
+        display: inline-block;
+        width: 1.25%;
+        aspect-ratio: 1/1;
+        text-align: center;
+        font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="upload-section" id="uploadSection">
+      <p>Загрузите PDF</p>
+      <button class="upload-btn" onclick="renderPage(currentPage)">Загрузить</button>
+    </div>
+    <div class="loading" id="loadingIndicator">
+      <div class="spinner"></div>
+      <p>Загрузка документа...</p>
+    </div>
+    <div class="controls" id="controls" style="display: none;">
+      <div class="page-selector">
+        <button class="nav-btn" id="prevBtn">←</button>
+        <input type="number" id="pageInput" class="page-input" min="1" value="1">
+        <button class="nav-btn" id="nextBtn">→</button>
+        <button class="nav-btn" style="position: absolute; right: 25px;" onclick=resetSelection()>Сбросить</button>
+      </div>
+      <div>
+        <span id="pageInfo"></span>
+      </div>
+    </div>
+    <div class="results" id="results">
+      <div class="content-box">
+        <pre id="tableContent"></pre>
+      </div>
+    </div>
+  </div>
+  <script>
+    const controls = document.getElementById('controls');
+    const results = document.getElementById('results');
+    const pageInput = document.getElementById('pageInput');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    const tableContent = document.getElementById('tableContent');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    let currentPage = 1;
+    let totalPages = 30;
+    let isDataLoaded = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      prevBtn.addEventListener('click', goToPrevPage);
+      nextBtn.addEventListener('click', goToNextPage);
+      pageInput.addEventListener('change', goToPage);
+    });
+
+
+    function loadData() {
+        fetch('keys.json')
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                Keys = data;
+            })
+        fetch('data.json')
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                Data = data;
+                isDataLoaded = true;
+            })
+    }
+    loadData();
+
+    function renderPage(num) {
+      if (!isDataLoaded) return;
+      currentPage = num;
+      pageInput.value = currentPage;
+      updatePageControls();
+      displayTable(Data[String(num)]);
+    }
+
+    function displayTable(lines) {
+      results.style.display = "block";
+      controls.style.display = "block";
+      uploadSection.style.display = "none";
+      tableContent.replaceChildren();
+      lines.forEach(row => {
+        row.forEach(elem => {
+          var letterElem = document.createElement('span');
+          letterElem.setAttribute('class', 'letter');
+          letterElem.style.background = Keys[elem];
+          letterElem.color = Keys[elem];
+          letterElem.addEventListener('click', () => chooseColor(Keys[elem]));
+          tableContent.appendChild(letterElem);
+        });
+        var letterElem = document.createElement('br');
+        tableContent.appendChild(letterElem);
+      });      
+    }
+
+    function chooseColor(color) {
+      document.querySelectorAll('span').forEach(span => {
+        if (span.color != color) span.classList.add('other');
+        else if (span.classList.contains('other')) span.classList.remove('other');
+      })
+    }
+
+    
+    function resetSelection() {
+      document.querySelectorAll('span').forEach(span => {
+        if (span.classList.contains('other')) span.classList.remove('other');
+      })
+    }
+
+    function updatePageControls() {
+      // pageInfo.textContent = `Стр ${currentPage} из ${totalPages}`;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    }
+    
+    function goToPrevPage() {
+      if (currentPage > 1) {
+        renderPage(currentPage - 1);
+      }
+    }
+    
+    function goToNextPage() {
+      if (currentPage < totalPages) {
+        renderPage(currentPage + 1);
+      }
+    }
+    
+    function goToPage() {
+      const pageNum = parseInt(pageInput.value);
+      if (pageNum >= 1 && pageNum <= totalPages) {
+        renderPage(pageNum);
+      } else 
+        pageInput.value = currentPage;
+    }
+    
+    function showLoading(show) {
+      loadingIndicator.style.display = show ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
