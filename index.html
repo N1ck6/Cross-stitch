@@ -16,16 +16,15 @@
       font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
       background: linear-gradient(135deg, #e0f7fa, #bbdefb, #e1bee7);
       color: #424242;
-      min-height: 100vh;
+      height: 100vh;
       padding-bottom: 20px;
       line-height: 0.1;
     }
     .main-container {
-      max-width: 500px;
       margin: 0 auto;
-      height: 100vh;
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
     .hero {
       flex: 1;
@@ -104,19 +103,27 @@
     
     .controls {
       display: flex;
+      position: sticky;
+      top: 10px;
       justify-content: space-between;
       align-items: center;
-      margin: 10px 0;
-      padding: 15px;
+      margin: 10px;
+      padding: 10px;
       background-color: #fff;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: max-content;
+      align-self: center;
+      gap: 15px;
+      flex-direction: column;
+      z-index: 10;
     }
     
     .page-selector {
       display: flex;
       align-items: center;
       gap: 10px;
+      position: relative;
     }
     
     .page-selector label {
@@ -127,17 +134,18 @@
     
     .page-input {
       width: 60px;
-      padding: 8px;
+      padding: 6px;
       border: 1px solid #ddd;
       border-radius: 4px;
       text-align: center;
+      font-size: 1.2rem;
     }
     
     .nav-btn {
-      background-color: #3498db;
-      color: white;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      color: #0b406e;
       border: none;
-      padding: 8px 15px;
+      padding: 7px 12px;
       border-radius: 4px;
       cursor: pointer;
     }
@@ -150,12 +158,12 @@
     .results {
       display: none;
       height: max-content;
-      height: min-content;
+      margin: auto 8px;
     }
     
     .content-box {
-      border: 2px solid black;
-      padding: 20px;
+      border: 2px solid rgb(255, 248, 223);
+      padding: 10px;
       background-color: #fefefe;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -167,21 +175,26 @@
       background-color: #f8f9fa;
       border-radius: 5px;
     }
-    
     .loading {
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
       padding: 20px;
-      display: none;
     }
-    
     .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #3498db;
+      width: 45px;
+      height: 45px;
+      border: 4px solid rgba(79, 195, 247, 0.3);
+      border-top: 4px solid #4fc3f7;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 15px;
+    }
+    .loading p {
+      color: #546e7a;
+      font-size: 1.05rem;
     }
     
     @keyframes spin {
@@ -194,11 +207,6 @@
         padding: 10px;
       }
       
-      .controls {
-        flex-direction: column;
-        gap: 15px;
-      }
-      
       .page-selector {
         align-items: flex-start;
       }
@@ -207,6 +215,7 @@
         margin-bottom: 5px;
       }
     }
+
     .other {
         opacity: 0.15;
         transform: scale(0.9);
@@ -218,6 +227,111 @@
         text-align: center;
         font-size: 0.7rem;
     }
+    .crossed {
+        -webkit-mask-size: cover;
+        mask-size: cover;
+        -webkit-mask-image: url(marked.svg);
+        mask-image: url(marked.svg);
+    }
+    .crossbtn {
+      transition: all 0.6s;
+      font-weight: 1000;
+    }
+    .crossbtn.toggled {
+      background: linear-gradient(135deg, #ff9800, #d4af37);
+      color: #000;
+    } 
+    .crossbtn:active {
+        transform: translateY(3px);
+    }
+    .ncolor {
+        user-select: none;
+    }
+    .arrow svg {
+        width: 20px;
+        height: auto;
+        cursor: pointer;
+        overflow: visible;
+    }
+    .arrow svg polygon, 
+    .arrow svg path {
+        transition: all 0.2s cubic-bezier(0.2, 1, 0.3, 1);
+        fill: #0b406e;
+    }
+    .arrow:active polygon, 
+    .arrow:active path {
+        fill: #0b406e;
+    }
+    .arrow:active .arrow-6-pl {
+        animation: arrow-anim 1s cubic-bezier(0.2, 1, 0.3, 1);
+    }
+    .arrow:active .arrow-6-pl-fixed {
+        animation: arrow-fixed-anim 1s cubic-bezier(0.2, 1, 0.3, 1);
+    }
+
+    @keyframes arrow-anim {
+        0% {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        5% {
+            transform: translateX(-0.1rem);
+        }
+        100% {
+            transform: translateX(1rem);
+            opacity: 0;
+        }
+    }
+    @keyframes arrow-fixed-anim {
+        5% {
+            opacity: 0;
+        }
+        20% {
+            opacity: 0.4;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+    
+    .unselect {
+        padding: 3px 9px;
+        font-size: 1.5rem;
+        border-radius: 50%;
+        aspect-ratio: 1/1;
+        transition: all 0.2s ease-out;
+    }
+    
+    .unselect:active {
+        animation: unselect-anim 0.2s ease;
+    }
+    
+    .unselect .text {
+        display: inline-block;
+        transform-origin: center;
+        transition: transform 0.1s ease;
+    }    
+
+    @keyframes textRotate {
+        0% { transform: rotate(0deg);
+            color: #0b406e;
+        }
+        99% { transform: rotate(-360deg);
+            color: #c30000;
+        }
+        100% { transform: rotate(-360deg);
+            color: #0b406e;
+        }
+    }
+
+    .unselect.animate .text {
+        animation: textRotate 1s ease-in-out forwards;
+    }
+    @media (orientation: landscape) {
+      body {
+        min-height: 100vw;
+      }
+    }
   </style>
 </head>
 <body>
@@ -225,19 +339,33 @@
     <div class="hero" id="heroSection">
       <div class="hero-content">
         <h1>Listener</h1>
-        <p>Погрузитесь в мир спокойствия и гармонии с нашим удобным приложением для вышивки</p>
+        <p>Погрузись в мир спокойствия и гармонии с удобным приложением для вышивки</p>
         <button class="load-btn" id="loadBtn">Загрузить страницу</button>
       </div>
     </div>
     <div class="controls" id="controls" style="display: none;">
       <div class="page-selector">
-        <button class="nav-btn" id="prevBtn">←</button>
-        <input type="number" id="pageInput" class="page-input" min="1" value="1">
-        <button class="nav-btn" id="nextBtn">→</button>
-        <button class="nav-btn" style="position: absolute; right: 25px;" onclick=resetSelection()>Сбросить</button>
-      </div>
-      <div>
-        <span id="pageInfo"></span>
+        <button class="nav-btn arrow" id="prevBtn">
+            <svg width="18px" height="17px" viewBox="0 0 18 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g transform="translate(8.500000, 8.500000) scale(-1, 1) translate(-8.500000, -8.500000)">
+            <polygon class="arrow-6-pl" points="16.3746667 8.33860465 7.76133333 15.3067621 6.904 14.3175671 14.2906667 8.34246869 6.908 2.42790698 7.76 1.43613596"></polygon>
+            <polygon class="arrow-6-pl-fixed" points="16.3746667 8.33860465 7.76133333 15.3067621 6.904 14.3175671 14.2906667 8.34246869 6.908 2.42790698 7.76 1.43613596"></polygon>
+            <path d="M-1.48029737e-15,0.56157424 L-1.48029737e-15,16.1929159 L9.708,8.33860465 L-2.66453526e-15,0.56157424 L-1.48029737e-15,0.56157424 Z M1.33333333,3.30246869 L7.62533333,8.34246869 L1.33333333,13.4327013 L1.33333333,3.30246869 L1.33333333,3.30246869 Z"></path>
+        </g>
+    </svg>
+    </button>
+        <input id="pageInput" class="page-input" min="1" value="1">
+        <button class="nav-btn arrow" id="nextBtn">
+            <svg width="18px" height="17px" viewBox="-1 0 18 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <g>
+            <polygon class="arrow-6-pl" points="16.3746667 8.33860465 7.76133333 15.3067621 6.904 14.3175671 14.2906667 8.34246869 6.908 2.42790698 7.76 1.43613596"></polygon>
+            <polygon class="arrow-6-pl-fixed" points="16.3746667 8.33860465 7.76133333 15.3067621 6.904 14.3175671 14.2906667 8.34246869 6.908 2.42790698 7.76 1.43613596"></polygon>
+            <path d="M-4.58892184e-16,0.56157424 L-4.58892184e-16,16.1929159 L9.708,8.33860465 L-1.64313008e-15,0.56157424 L-4.58892184e-16,0.56157424 Z M1.33333333,3.30246869 L7.62533333,8.34246869 L1.33333333,13.4327013 L1.33333333,3.30246869 L1.33333333,3.30246869 Z"></path>
+        </g>
+    </svg></button>
+        <input id="ncolor" disabled class="page-input ncolor" value="">
+        <button class="nav-btn crossbtn" id="cross">╳</button>
+        <button class="nav-btn unselect" id="unselect" onclick=resetSelection()><span class="text" id="span-header">↺</span></button>
       </div>
     </div>
     <div class="results" id="results">
@@ -254,6 +382,8 @@
     const appContainer = document.getElementById('appContainer');
     const heroSection = document.getElementById('heroSection');
     const loadBtn = document.getElementById('loadBtn');
+    const crossBtn = document.getElementById('cross');
+    const unselectBtn = document.getElementById('unselect');
     const controls = document.getElementById('controls');
     const results = document.getElementById('results');
     const pageInput = document.getElementById('pageInput');
@@ -262,74 +392,213 @@
     const pageInfo = document.getElementById('pageInfo');
     const tableContent = document.getElementById('tableContent');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const ncolor = document.getElementById('ncolor');
     let currentPage = 1;
     let totalPages = 30;
     let isDataLoaded = false;
+    let isToggled = false;
+    let lastColor = null;
+    let Keys = {};
+    let Data = {};
+    let i, j, p;
+    let leftP = [2, 3, 4, 5, 6];
+    let topP = [7, 13, 19, 25];
+    let bothP = [8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30];
+
+    
+    function savePageToCookie(page) {
+      document.cookie = `currentPage=${page}; path=/; max-age=31536000`;
+    }
+    
+    function getPageFromCookie() {
+      const name = "currentPage=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) === 0) {
+          return parseInt(c.substring(name.length, c.length));
+        }
+      }
+      return null;
+    }
+    
+    function getDataStore() {
+        const name = "dataStore=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i].trim();
+            if (c.startsWith(name)) {
+            try {
+                return JSON.parse(c.substring(name.length)) || {};
+            } catch (e) {
+                return {};
+            }
+            }
+        }
+        return {};
+    }
+
+    function saveDataStore(data) {
+        document.cookie = `dataStore=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=31536000`;
+    }
+
+    function addPairToKey(key, i, j) {
+        const data = getDataStore();
+        if (!data[key]) data[key] = [];
+        data[key].push([Number(i), Number(j)]);
+        saveDataStore(data);
+    }
+
+    function deletePairFromKey(key, i, j) {
+        const data = getDataStore();
+        if (data[key]) {
+            data[key] = data[key].filter(
+            pair => !(pair[0] === i && pair[1] === j)
+            );
+            if (data[key].length === 0) delete data[key];
+        }
+        saveDataStore(data);
+    }
+
+    function getPairsForKey(key) {
+        const data = getDataStore();
+        return data[key] ? data[key].map(pair => [...pair]) : [];
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       loadBtn.addEventListener('click', () => {
         setTimeout(() => {
           heroSection.style.display = 'none';
           controls.style.display = 'flex';
-          renderPage(1)
-        }, 200);
+          renderPage(currentPage);
+        }, 450);
       });
+      crossBtn.addEventListener('click', () => {
+        isToggled = !isToggled;
+        crossBtn.classList.toggle('toggled');
+      });
+      unselectBtn.addEventListener('click', function() {
+            this.classList.remove('animate');
+            void this.offsetWidth;
+            this.classList.add('animate');
+        });
       prevBtn.addEventListener('click', goToPrevPage);
       nextBtn.addEventListener('click', goToNextPage);
       pageInput.addEventListener('change', goToPage);
     });
-
+    
 
     function loadData() {
-        fetch('keys.json')
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                Keys = data;
-            })
-        fetch('data.json')
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                Data = data;
-                isDataLoaded = true;
-            })
+      showLoading(true);
+      Promise.all([
+        fetch('keys.json').then(res => res.json()),
+        fetch('data.json').then(res => res.json())
+      ]).then(([keysData, dataData]) => {
+        Keys = keysData;
+        Data = dataData;
+        isDataLoaded = true;
+        
+        const savedPage = getPageFromCookie();
+        if (savedPage && savedPage <= totalPages) {
+          currentPage = savedPage;
+          pageInput.value = currentPage;
+        }
+        showLoading(false);
+      })
     }
     loadData();
+
+    function MoreGray(hex, amount = 1) {
+        const [r, g, b] = hex.match(/\w\w/g).map(x => parseInt(x, 16) / 255);
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const l = (max + min) / 2;
+        const diff = max - min;
+        const s = diff && (l > 0.5 ? diff / (2 - max - min) : diff / (max + min));
+        const ns = s * (1 - amount);
+        const q = l <= 0.5 ? l * (1 + ns) : l + ns - l * ns;
+        const p = 2 * l - q;
+        const h = max === r ? (g - b) / diff / 6 : max === g ? (b - r) / diff / 6 + 1/3 : (r - g) / diff / 6 + 2/3;
+
+        const hue2rgb = (p, q, t) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            return t < 1/6 ? p + (q - p) * 6 * t : t < 1/2 ? q : t < 2/3 ? p + (q - p) * (2/3 - t) * 6 : p;
+        };
+
+        const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+        return `#${[hue2rgb(p, q, h + 1/3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1/3)].map(toHex).join('')}`;
+        }
 
     function renderPage(num) {
       if (!isDataLoaded) return;
       currentPage = num;
       pageInput.value = currentPage;
+      savePageToCookie(currentPage);
       updatePageControls();
       displayTable(Data[String(num)]);
     }
 
     function displayTable(lines) {
       results.style.display = "block";
-      controls.style.display = "block";
+      controls.style.display = "flex";
       tableContent.replaceChildren();
+      let i = 0;
+      let j = 0;
+      const crossed = getPairsForKey(currentPage);
       lines.forEach(row => {
         row.forEach(elem => {
           var letterElem = document.createElement('span');
           letterElem.setAttribute('class', 'letter');
-          letterElem.style.background = Keys[elem];
-          letterElem.color = Keys[elem];
-          letterElem.addEventListener('click', () => chooseColor(Keys[elem]));
+          if (crossed.some(pair => pair[0] === i && pair[1] === j)) letterElem.classList.toggle("crossed")
+          if ((0 <= j && j <= 2 && leftP.includes(currentPage)) ||
+              (0 <= i && i <= 2 && topP.includes(currentPage)) ||
+              ((0 <= i && i <= 2 || 0 <= j && j <= 2) && bothP.includes(currentPage))) {
+            letterElem.style.background = MoreGray(Keys[elem]);
+            letterElem.color = MoreGray(Keys[elem]);
+          }
+          else {
+            letterElem.style.background = Keys[elem];
+            letterElem.color = Keys[elem];
+          }
+          letterElem.num = elem;
+          letterElem.data = [i, j, currentPage]
+          letterElem.addEventListener('click', () => chooseColor(letterElem));
           tableContent.appendChild(letterElem);
+          j++;
         });
+        i++;
+        j = 0;
         var letterElem = document.createElement('br');
         tableContent.appendChild(letterElem);
       });      
     }
 
-    function chooseColor(color) {
-      document.querySelectorAll('span').forEach(span => {
-        if (span.color != color) span.classList.add('other');
-        else if (span.classList.contains('other')) span.classList.remove('other');
-      })
+    function chooseColor(elem) {
+      color = elem.color;
+      if (isToggled && lastColor != null) {
+        if (lastColor == color) {
+            [i, j, p] = elem.data;
+            if (elem.classList.contains("crossed")) {
+                deletePairFromKey(p, i, j);}
+            else {
+                addPairToKey(p, i, j);}
+            elem.classList.toggle("crossed")
+        }
+      } else {
+        num = elem.num
+        if (color == lastColor) return;
+        document.querySelectorAll('span').forEach(span => {
+            if (span.color != color && span.id != "span-header") span.classList.add('other');
+            else if (span.classList.contains('other')) span.classList.remove('other');
+        })
+        lastColor = color;
+        ncolor.value = num;
+      }
     }
 
     
@@ -337,6 +606,8 @@
       document.querySelectorAll('span').forEach(span => {
         if (span.classList.contains('other')) span.classList.remove('other');
       })
+      lastColor = null;
+      ncolor.value = "";
     }
 
     function updatePageControls() {
@@ -365,7 +636,8 @@
     }
     
     function showLoading(show) {
-      loadingIndicator.style.display = show ? 'block' : 'none';
+      loadingIndicator.style.display = show ? 'flex' : 'none';
+      heroSection.style.display = show ? 'none' : 'flex';
     }
   </script>
 </body>
