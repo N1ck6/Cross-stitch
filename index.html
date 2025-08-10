@@ -3,55 +3,103 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <title>Listener</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
-    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #03124c, #1a2a6c);
-      color: #333;
-      line-height: 0.1;
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa, #bbdefb, #e1bee7);
+      color: #424242;
       min-height: 100vh;
+      padding-bottom: 20px;
+      line-height: 0.1;
     }
-    
-    .container {
+    .main-container {
+      max-width: 500px;
+      margin: 0 auto;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .hero {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      height: 100vh;
-    }
-    
-    .upload-section {
+      align-items: center;
+      padding: 20px;
       text-align: center;
-      padding: 40px;
-      border: 3px dashed #3498db;
-      border-radius: 10px;
-      background-color: #fefefe;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://crosti.ru/artworks/00/00/fa/72_picture_5dd91a4c.jpg') no-repeat center center/cover;
+      opacity: 0.2;
+      z-index: 0;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
       margin-bottom: 20px;
-      width: 80%;
-      margin: auto;
+      color: #37474f;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-weight: 600;
     }
-    
-    .upload-section p {
-      margin: 15px 0;
-      color: #555;
+    .hero p {
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      color: #546e7a;
+      line-height: 1.5;
     }
-    
-    .upload-btn {
-      background-color: #3498db;
+    .load-btn {
+      background: linear-gradient(to right, #4fc3f7, #29b6f6);
       color: white;
-      padding: 12px 25px;
       border: none;
-      border-radius: 5px;
+      padding: 16px 35px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 16px;
-      transition: background-color 0.3s;
+      box-shadow: 0 4px 15px rgba(41, 182, 246, 0.3);
+      transition: all 0.3s ease;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .load-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 20px;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(30deg);
+      transition: all 0.8s;
+    }
+    .load-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 2px 8px rgba(41, 182, 246, 0.3);
+    }
+    .load-btn:hover::after {
+      left: 120%;
     }
     
     .controls {
@@ -160,8 +208,8 @@
       }
     }
     .other {
-        background-color: #838383 !important;
-        color: rgba(255, 255, 255, 0.8);
+        opacity: 0.15;
+        transform: scale(0.9);
     }
     .letter {
         display: inline-block;
@@ -173,14 +221,13 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="upload-section" id="uploadSection">
-      <p>Загрузите PDF</p>
-      <button class="upload-btn" onclick="renderPage(currentPage)">Загрузить</button>
-    </div>
-    <div class="loading" id="loadingIndicator">
-      <div class="spinner"></div>
-      <p>Загрузка документа...</p>
+  <div class="main-container">
+    <div class="hero" id="heroSection">
+      <div class="hero-content">
+        <h1>Listener</h1>
+        <p>Погрузитесь в мир спокойствия и гармонии с нашим удобным приложением для вышивки</p>
+        <button class="load-btn" id="loadBtn">Загрузить страницу</button>
+      </div>
     </div>
     <div class="controls" id="controls" style="display: none;">
       <div class="page-selector">
@@ -198,8 +245,15 @@
         <pre id="tableContent"></pre>
       </div>
     </div>
+    <div class="loading" id="loadingIndicator" style="display: none;">
+      <div class="spinner"></div>
+      <p>Загрузка документа...</p>
+    </div>
   </div>
   <script>
+    const appContainer = document.getElementById('appContainer');
+    const heroSection = document.getElementById('heroSection');
+    const loadBtn = document.getElementById('loadBtn');
     const controls = document.getElementById('controls');
     const results = document.getElementById('results');
     const pageInput = document.getElementById('pageInput');
@@ -213,6 +267,13 @@
     let isDataLoaded = false;
 
     document.addEventListener('DOMContentLoaded', () => {
+      loadBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          heroSection.style.display = 'none';
+          controls.style.display = 'flex';
+          renderPage(1)
+        }, 200);
+      });
       prevBtn.addEventListener('click', goToPrevPage);
       nextBtn.addEventListener('click', goToNextPage);
       pageInput.addEventListener('change', goToPage);
@@ -249,7 +310,6 @@
     function displayTable(lines) {
       results.style.display = "block";
       controls.style.display = "block";
-      uploadSection.style.display = "none";
       tableContent.replaceChildren();
       lines.forEach(row => {
         row.forEach(elem => {
@@ -280,7 +340,6 @@
     }
 
     function updatePageControls() {
-      // pageInfo.textContent = `Стр ${currentPage} из ${totalPages}`;
       prevBtn.disabled = currentPage <= 1;
       nextBtn.disabled = currentPage >= totalPages;
     }
