@@ -220,7 +220,7 @@
     }
     .letter {
         display: inline-block;
-        width: 1.25%;
+        width: 1.2%;
         aspect-ratio: 1/1;
         text-align: center;
         font-size: 0.7rem;
@@ -574,6 +574,8 @@
             letterElem.style.background = Keys[elem];
             letterElem.color = Keys[elem];
           }
+          if (i%10 == 0 && i != 0) letterElem.style.marginTop = '1px';
+          if (j%10 == 0 && j != 0) letterElem.style.marginLeft = '1px';
           letterElem.num = elem;
           letterElem.data = [i, j, currentPage]
           letterElem.addEventListener('click', () => chooseColor(letterElem));
