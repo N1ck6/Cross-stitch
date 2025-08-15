@@ -240,6 +240,10 @@
       background: linear-gradient(135deg, #ff9800, #d4af37);
       color: #000;
     } 
+    .crossbtn.toggledAll {
+      background: linear-gradient(135deg, #f2743a, #e4682e);
+      color: #000;
+    } 
     .crossbtn:active {
         transform: translateY(3px);
     }
@@ -394,6 +398,7 @@
     let totalPages = 30;
     let isDataLoaded = false;
     let isToggled = false;
+    let isToggledAll = false;
     let lastColor = null;
     let Keys = {};
     let Data = {};
@@ -454,11 +459,8 @@
     function deletePairFromKey(key, i, j) {
         const data = getDataStore();
         if (data[key]) {
-            data[key] = data[key].filter(
-            pair => !(pair[0] === i && pair[1] === j)
-            );
-            if (data[key].length === 0) delete data[key];
-        }
+            data[key] = data[key].filter(pair => !(pair[0] === i && pair[1] === j));
+            if (data[key].length === 0) delete data[key];}
         saveDataStore(data);
     }
 
@@ -476,8 +478,18 @@
         }, 450);
       });
       crossBtn.addEventListener('click', () => {
-        isToggled = !isToggled;
-        crossBtn.classList.toggle('toggled');
+        if (!isToggled && !isToggledAll) {
+          isToggled = !isToggled;
+          crossBtn.classList.toggle('toggled');
+        } else if (isToggled && !isToggledAll) {
+          isToggled = !isToggled;
+          isToggledAll = !isToggledAll;
+          crossBtn.classList.toggle('toggled');
+          crossBtn.classList.toggle('toggledAll');
+        } else if (isToggledAll) {
+          isToggledAll = !isToggledAll;
+          crossBtn.classList.toggle('toggledAll');
+        }
       });
       unselectBtn.addEventListener('click', function() {
             this.classList.remove('animate');
@@ -572,12 +584,14 @@
         j = 0;
         var letterElem = document.createElement('br');
         tableContent.appendChild(letterElem);
-      });      
+      });    
+      if (lastColor != null) chooseColor(lastColor, 1);  
     }
 
-    function chooseColor(elem) {
-      color = elem.color;
-      if (isToggled && lastColor != null) {
+    function chooseColor(elem, mode=0) {
+      if (mode == 0) color = elem.color;
+      else color = elem;
+      if (mode == 0 && isToggled && lastColor != null) {
         if (lastColor == color) {
             [i, j, p] = elem.data;
             if (elem.classList.contains("crossed")) {
@@ -586,15 +600,43 @@
                 addPairToKey(p, i, j);}
             elem.classList.toggle("crossed")
         }
+      } else if (mode == 0  && isToggledAll && lastColor != null) {
+        const data = getDataStore();
+        if (!data[currentPage]) data[currentPage] = [];
+        if (lastColor == color) {
+          if (!elem.classList.contains("crossed")) {
+            document.querySelectorAll('span').forEach(span => {
+              if (span.color == lastColor && span.id != "span-header" && !span.classList.contains("crossed")) {
+                span.classList.add("crossed");
+                [i, j, k] = span.data;
+                data[currentPage].push([Number(i), Number(j)]);
+              }
+            })
+          } else {
+            document.querySelectorAll('span').forEach(span => {
+              if (span.color == lastColor && span.id != "span-header" && span.classList.contains("crossed")) {
+                span.classList.remove("crossed");
+                [i, j, key] = span.data;
+                if (data[key]) {
+                  data[key] = data[key].filter(pair => !(pair[0] === i && pair[1] === j));
+                  if (data[key].length === 0) delete data[key];}
+              }
+            })
+          }
+        }
+        console.log(data);
+        saveDataStore(data);
       } else {
-        num = elem.num
-        if (color == lastColor) return;
+        if (mode == 0) {
+          if (color == lastColor) return;
+          num = elem.num
+          lastColor = color;
+          ncolor.value = num;
+        }
         document.querySelectorAll('span').forEach(span => {
             if (span.color != color && span.id != "span-header") span.classList.add('other');
             else if (span.classList.contains('other')) span.classList.remove('other');
         })
-        lastColor = color;
-        ncolor.value = num;
       }
     }
 
