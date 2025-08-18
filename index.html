@@ -173,38 +173,6 @@
       background-color: #f8f9fa;
       border-radius: 5px;
     }
-    .mLeft {
-      opacity: 1 !important;
-      position: relative;
-      display: inline-block;
-      margin-left: 1px;
-    }
-    .mLeft:before {
-      opacity: 1 !important;
-      content: '';
-      position: absolute;
-      left: -1px;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: black;
-    }
-
-    .mTop {
-      position: relative;
-      display: inline-block;
-      margin-top: 1px;
-    }
-    .mTop:after {
-      opacity: 1 !important;
-      content: '';
-      position: absolute;
-      top: -1px;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: black;
-    }
     .loading {
       display: flex;
       flex-direction: column;
@@ -256,6 +224,27 @@
         aspect-ratio: 1/1;
         text-align: center;
         font-size: 0.7rem;
+    }
+    #tableContent {
+      position: relative;
+    }
+    .grid-line {
+      position: absolute;
+      background: black;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .vertical {
+      width: 1px;
+      height: 100%;
+      top: 0;
+    }
+
+    .horizontal {
+      height: 1px;
+      width: 100%;
+      left: 0;
     }
     .crossed {
         -webkit-mask-size: cover;
@@ -594,6 +583,10 @@
       let j = 0;
       let off1 = offsetT[Math.floor((currentPage - 1)/5) % 2];
       let off2 = offsetL[(currentPage - 1)%6];
+      let lines1 = 0;
+      let lines2 = 0;
+      let one = document.getElementById('tableContent').offsetWidth * 0.012;
+      let oneHeight = document.getElementById('tableContent').offsetHeight;
       const crossed = getPairsForKey(currentPage);
       lines.forEach(row => {
         row.forEach(elem => {
@@ -610,8 +603,26 @@
             letterElem.style.background = Keys[elem];
             letterElem.color = Keys[elem];
           }
-          if ((i+off1)%10 == 0 && i != 0) letterElem.classList.add('mTop');
-          if ((j+off2)%10 == 0 && j != 0) letterElem.classList.add('mLeft');
+          if ((i+off1)%10 == 0 && i != 0 && j == 0){
+            if (j==0){
+              var line = document.createElement('div');
+              line.className = 'grid-line horizontal';
+              line.style.top = (i*one + lines1)/oneHeight*100 + '%';
+              tableContent.appendChild(line);
+            }
+            letterElem.style.marginTop = '1px';
+            lines1++;
+          } 
+          if ((j+off2)%10 == 0 && j != 0){
+            if (i==0){
+              var line = document.createElement('div');
+              line.className = 'grid-line vertical';
+              line.style.left = `calc(${j*1.2}% + ${lines2}px)`;
+              tableContent.appendChild(line);
+            }
+            letterElem.style.marginLeft = '1px';
+            lines2++;
+          } 
           letterElem.num = elem;
           letterElem.data = [i, j, currentPage]
           letterElem.addEventListener('click', () => chooseColor(letterElem));
@@ -620,8 +631,7 @@
         });
         i++;
         j = 0;
-        var letterElem = document.createElement('br');
-        tableContent.appendChild(letterElem);
+        tableContent.appendChild(document.createElement('br'));
       });    
       if (lastColor != null) chooseColor(lastColor, 1);  
     }
