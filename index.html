@@ -451,45 +451,94 @@
       return null;
     }
     
-    function getDataStore() {
-        const name = "dataStore=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i].trim();
-            if (c.startsWith(name)) {
-            try {
-                return JSON.parse(c.substring(name.length)) || {};
-            } catch (e) {
-                return {};
-            }
-            }
-        }
-        return {};
+    function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.startsWith(nameEQ)) return c.substring(nameEQ.length);
+    }
+    return null;
     }
 
-    function saveDataStore(data) {
-        document.cookie = `dataStore=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=31536000`;
+    function migrateOldData() {
+      const oldCookie = getCookie('dataStore');
+      if (!oldCookie) return;
+      try {
+          const oldData = JSON.parse(oldCookie);
+          const specialPages = [6, 12, 18, 24, 30];
+          
+          for (const pageStr in oldData) {
+              const page = parseInt(pageStr, 10);
+              if (isNaN(page) || page < 1 || page > 30) continue;
+              
+              const pairs = oldData[pageStr];
+              const cellsPerRow = specialPages.includes(page) ? 65 : 80;
+              const cellNumbers = pairs.map(pair => 
+                  pair[0] * cellsPerRow + pair[1]
+              );
+              localStorage.setItem(`dataStore_page${page}`, JSON.stringify(cellNumbers));
+          }
+          document.cookie = "dataStore=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict";
+      } catch (e) {
+          document.cookie = "dataStore=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict";
+      }
     }
+    migrateOldData();
 
     function addPairToKey(key, i, j) {
-        const data = getDataStore();
-        if (!data[key]) data[key] = [];
-        data[key].push([Number(i), Number(j)]);
-        saveDataStore(data);
+        const specialPages = [6, 12, 18, 24, 30];
+        const cellsPerRow = specialPages.includes(key) ? 65 : 80;
+        const cellNumber = i * cellsPerRow + j;
+        const storageKey = `dataStore_page${key}`;
+        let cellNumbers = [];
+        const storedData = localStorage.getItem(storageKey);
+        if (storedData) {
+            try {
+                cellNumbers = JSON.parse(storedData);
+            } catch (e) {
+                cellNumbers = [];
+            }
+        }
+        
+        if (!cellNumbers.includes(cellNumber)) {
+            cellNumbers.push(cellNumber);
+            localStorage.setItem(storageKey, JSON.stringify(cellNumbers));
+        }
     }
 
     function deletePairFromKey(key, i, j) {
-        const data = getDataStore();
-        if (data[key]) {
-            data[key] = data[key].filter(pair => !(pair[0] === i && pair[1] === j));
-            if (data[key].length === 0) delete data[key];}
-        saveDataStore(data);
+      const specialPages = [6, 12, 18, 24, 30];
+      const cellsPerRow = specialPages.includes(key) ? 65 : 80;
+      const cellNumber = i * cellsPerRow + j;
+      const storageKey = `dataStore_page${key}`;
+      const storedData = localStorage.getItem(storageKey);
+      if (!storedData) return;
+      try {
+          let cellNumbers = JSON.parse(storedData);
+          const index = cellNumbers.indexOf(cellNumber);
+          if (index !== -1) {
+              cellNumbers.splice(index, 1);
+              localStorage.setItem(storageKey, JSON.stringify(cellNumbers));
+          }
+      } catch (e) {
+          localStorage.removeItem(storageKey);
+      }
     }
 
     function getPairsForKey(key) {
-        const data = getDataStore();
-        return data[key] ? data[key].map(pair => [...pair]) : [];
+      const specialPages = [6, 12, 18, 24, 30];
+      const cellsPerRow = specialPages.includes(key) ? 65 : 80;
+      const storageKey = `dataStore_page${key}`;
+      const storedData = localStorage.getItem(storageKey);
+      if (!storedData) return [];
+      try {
+          const cellNumbers = JSON.parse(storedData);
+          return cellNumbers.map(num => [Math.floor(num / cellsPerRow), num % cellsPerRow]);
+      } catch (e) {
+          localStorage.removeItem(storageKey);
+          return [];
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -624,7 +673,7 @@
             lines2++;
           } 
           letterElem.num = elem;
-          letterElem.data = [i, j, currentPage]
+          letterElem.data = [i, j]
           letterElem.addEventListener('click', () => chooseColor(letterElem));
           tableContent.appendChild(letterElem);
           j++;
@@ -641,39 +690,55 @@
       else color = elem;
       if (mode == 0 && isToggled && lastColor != null) {
         if (lastColor == color) {
-            [i, j, p] = elem.data;
+            [i, j] = elem.data;
             if (elem.classList.contains("crossed")) {
-                deletePairFromKey(p, i, j);}
+                deletePairFromKey(currentPage, i, j);}
             else {
-                addPairToKey(p, i, j);}
+                addPairToKey(currentPage, i, j);}
             elem.classList.toggle("crossed")
         }
       } else if (mode == 0  && isToggledAll && lastColor != null) {
-        const data = getDataStore();
-        if (!data[currentPage]) data[currentPage] = [];
+        const specialPages = [6, 12, 18, 24, 30];
+        const cellsPerRow = specialPages.includes(currentPage) ? 65 : 80;
+        const cellNumber = i * cellsPerRow + j;
+        const storageKey = `dataStore_page${currentPage}`;
+        let cellNumbers = [];
+        const storedData = localStorage.getItem(storageKey);
+        if (storedData) {
+            try {
+                cellNumbers = JSON.parse(storedData);
+            } catch (e) {
+                cellNumbers = [];
+            }
+        }
+
         if (lastColor == color) {
           if (!elem.classList.contains("crossed")) {
+            
             document.querySelectorAll('span').forEach(span => {
               if (span.color == lastColor && span.id != "span-header" && !span.classList.contains("crossed")) {
                 span.classList.add("crossed");
-                [i, j, k] = span.data;
-                data[currentPage].push([Number(i), Number(j)]);
+                [i, j] = span.data;
+
+                const cellNumber = i * cellsPerRow + j;
+                if (!cellNumbers.includes(cellNumber)) cellNumbers.push(cellNumber);
               }
             })
           } else {
             document.querySelectorAll('span').forEach(span => {
               if (span.color == lastColor && span.id != "span-header" && span.classList.contains("crossed")) {
                 span.classList.remove("crossed");
-                [i, j, key] = span.data;
-                if (data[key]) {
-                  data[key] = data[key].filter(pair => !(pair[0] === i && pair[1] === j));
-                  if (data[key].length === 0) delete data[key];}
+                [i, j] = span.data;
+
+                const cellNumber = i * cellsPerRow + j;
+                const index = cellNumbers.indexOf(cellNumber);
+                if (index !== -1) cellNumbers.splice(index, 1);
               }
             })
+
           }
         }
-        console.log(data);
-        saveDataStore(data);
+        localStorage.setItem(storageKey, JSON.stringify(cellNumbers));
       } else {
         if (mode == 0) {
           if (color == lastColor) return;
