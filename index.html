@@ -173,6 +173,38 @@
       background-color: #f8f9fa;
       border-radius: 5px;
     }
+    .mLeft {
+      opacity: 1 !important;
+      position: relative;
+      display: inline-block;
+      margin-left: 1px;
+    }
+    .mLeft:before {
+      opacity: 1 !important;
+      content: '';
+      position: absolute;
+      left: -1px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: black;
+    }
+
+    .mTop {
+      position: relative;
+      display: inline-block;
+      margin-top: 1px;
+    }
+    .mTop:after {
+      opacity: 1 !important;
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: black;
+    }
     .loading {
       display: flex;
       flex-direction: column;
@@ -406,6 +438,8 @@
     let leftP = [2, 3, 4, 5, 6];
     let topP = [7, 13, 19, 25];
     let bothP = [8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30];
+    let offsetL = [0, 7, 4, 1, 8, 5]; // ends with 5
+    let offsetT = [0, 5]; // 3x by 5x 0, 5x 5
 
     
     function savePageToCookie(page) {
@@ -558,6 +592,8 @@
       tableContent.replaceChildren();
       let i = 0;
       let j = 0;
+      let off1 = offsetT[Math.floor((currentPage - 1)/5) % 2];
+      let off2 = offsetL[(currentPage - 1)%6];
       const crossed = getPairsForKey(currentPage);
       lines.forEach(row => {
         row.forEach(elem => {
@@ -574,8 +610,8 @@
             letterElem.style.background = Keys[elem];
             letterElem.color = Keys[elem];
           }
-          if (i%10 == 0 && i != 0) letterElem.style.marginTop = '1px';
-          if (j%10 == 0 && j != 0) letterElem.style.marginLeft = '1px';
+          if ((i+off1)%10 == 0 && i != 0) letterElem.classList.add('mTop');
+          if ((j+off2)%10 == 0 && j != 0) letterElem.classList.add('mLeft');
           letterElem.num = elem;
           letterElem.data = [i, j, currentPage]
           letterElem.addEventListener('click', () => chooseColor(letterElem));
