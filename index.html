@@ -116,7 +116,21 @@
       flex-direction: column;
       z-index: 10;
     }
-    
+    .progress-container {
+      position: absolute;
+      bottom: 0;
+      left: 2%;
+      width: 96%;
+      height: 1px;
+      background: white;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #4CAF50;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
     .page-selector {
       display: flex;
       align-items: center;
@@ -375,7 +389,7 @@
             <path d="M-1.48029737e-15,0.56157424 L-1.48029737e-15,16.1929159 L9.708,8.33860465 L-2.66453526e-15,0.56157424 L-1.48029737e-15,0.56157424 Z M1.33333333,3.30246869 L7.62533333,8.34246869 L1.33333333,13.4327013 L1.33333333,3.30246869 L1.33333333,3.30246869 Z"></path>
         </g>
     </svg>
-    </button>
+        </button>
         <input id="pageInput" class="page-input" min="1" value="1">
         <button class="nav-btn arrow" id="nextBtn">
             <svg width="18px" height="17px" viewBox="-1 0 18 17" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -384,10 +398,13 @@
             <polygon class="arrow-6-pl-fixed" points="16.3746667 8.33860465 7.76133333 15.3067621 6.904 14.3175671 14.2906667 8.34246869 6.908 2.42790698 7.76 1.43613596"></polygon>
             <path d="M-4.58892184e-16,0.56157424 L-4.58892184e-16,16.1929159 L9.708,8.33860465 L-1.64313008e-15,0.56157424 L-4.58892184e-16,0.56157424 Z M1.33333333,3.30246869 L7.62533333,8.34246869 L1.33333333,13.4327013 L1.33333333,3.30246869 L1.33333333,3.30246869 Z"></path>
         </g>
-    </svg></button>
+        </svg></button>
         <input id="ncolor" disabled class="page-input ncolor" value="">
         <button class="nav-btn crossbtn" id="cross"><b>╳</button>
         <button class="nav-btn unselect" id="unselect" onclick=resetSelection()><span class="text" id="span-header">↺</b></span></button>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
       </div>
     </div>
     <div class="results" id="results">
@@ -429,6 +446,8 @@
     let bothP = [8, 9, 10, 11, 12, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28, 29, 30];
     let offsetL = [0, 7, 4, 1, 8, 5]; // ends with 5
     let offsetT = [0, 5]; // 3x by 5x 0, 5x 5
+    let allSquares;
+    let doneSquares;
 
     
     function savePageToCookie(page) {
@@ -541,6 +560,10 @@
       }
     }
 
+    function setProgress(percent) {
+      const progressBar = document.querySelector('.progress-bar');
+      progressBar.style.width = Math.min(100, Math.max(0, percent*100)) + '%';
+    }
     document.addEventListener('DOMContentLoaded', () => {
       loadBtn.addEventListener('click', () => {
         setTimeout(() => {
@@ -634,6 +657,8 @@
       let off2 = offsetL[(currentPage - 1)%6];
       let lines1 = 0;
       let lines2 = 0;
+      allSquares = 0;
+      doneSquares = 0;
       let one = document.getElementById('tableContent').offsetWidth * 0.012;
       let oneHeight = document.getElementById('tableContent').offsetHeight;
       const crossed = getPairsForKey(currentPage);
@@ -641,7 +666,10 @@
         row.forEach(elem => {
           var letterElem = document.createElement('span');
           letterElem.setAttribute('class', 'letter');
-          if (crossed.some(pair => pair[0] === i && pair[1] === j)) letterElem.classList.toggle("crossed")
+          if (crossed.some(pair => pair[0] === i && pair[1] === j)) {
+            letterElem.classList.toggle("crossed")
+            doneSquares++;
+          }
           if ((0 <= j && j <= 2 && leftP.includes(currentPage)) ||
               (0 <= i && i <= 2 && topP.includes(currentPage)) ||
               ((0 <= i && i <= 2 || 0 <= j && j <= 2) && bothP.includes(currentPage))) {
@@ -677,12 +705,14 @@
           letterElem.addEventListener('click', () => chooseColor(letterElem));
           tableContent.appendChild(letterElem);
           j++;
+          allSquares++;
         });
         i++;
         j = 0;
         tableContent.appendChild(document.createElement('br'));
       });    
-      if (lastColor != null) chooseColor(lastColor, 1);  
+      if (lastColor != null) chooseColor(lastColor, 1);
+      setProgress(doneSquares/allSquares);
     }
 
     function chooseColor(elem, mode=0) {
@@ -692,12 +722,17 @@
         if (lastColor == color) {
             [i, j] = elem.data;
             if (elem.classList.contains("crossed")) {
-                deletePairFromKey(currentPage, i, j);}
+                deletePairFromKey(currentPage, i, j);
+                doneSquares--;
+              }
             else {
-                addPairToKey(currentPage, i, j);}
-            elem.classList.toggle("crossed")
+                addPairToKey(currentPage, i, j);
+                doneSquares++;
+              }
+            elem.classList.toggle("crossed");
+            setProgress(doneSquares/allSquares);
         }
-      } else if (mode == 0  && isToggledAll && lastColor != null) {
+      } else if (mode == 0 && isToggledAll && lastColor != null) {
         const specialPages = [6, 12, 18, 24, 30];
         const cellsPerRow = specialPages.includes(currentPage) ? 65 : 80;
         const cellNumber = i * cellsPerRow + j;
@@ -714,7 +749,6 @@
 
         if (lastColor == color) {
           if (!elem.classList.contains("crossed")) {
-            
             document.querySelectorAll('span').forEach(span => {
               if (span.color == lastColor && span.id != "span-header" && !span.classList.contains("crossed")) {
                 span.classList.add("crossed");
@@ -722,6 +756,7 @@
 
                 const cellNumber = i * cellsPerRow + j;
                 if (!cellNumbers.includes(cellNumber)) cellNumbers.push(cellNumber);
+                doneSquares++;
               }
             })
           } else {
@@ -733,12 +768,14 @@
                 const cellNumber = i * cellsPerRow + j;
                 const index = cellNumbers.indexOf(cellNumber);
                 if (index !== -1) cellNumbers.splice(index, 1);
+                doneSquares--;
               }
             })
 
           }
         }
         localStorage.setItem(storageKey, JSON.stringify(cellNumbers));
+        setProgress(doneSquares/allSquares);
       } else {
         if (mode == 0) {
           if (color == lastColor) return;
