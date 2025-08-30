@@ -229,15 +229,44 @@
     }
 
     .other {
-        opacity: 0.15;
-        transform: scale(0.9);
+      opacity: 0.15;
+      transform: scale(0.9);
     }
     .letter {
-        display: inline-block;
-        width: 1.2%;
-        aspect-ratio: 1/1;
-        text-align: center;
-        font-size: 0.7rem;
+      position: relative;
+      display: inline-block;
+      width: 1.2%;
+      aspect-ratio: 1/1;
+      text-align: center;
+      font-size: 0.7rem;
+    }
+    .letter.show-dot {
+      border: 1px solid #000000;
+    }
+    .letter.show-dot::before,
+    .letter.show-dot::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 35%;
+      aspect-ratio: 5/1;
+      background-color: #FFFFFF;
+      border: 1px solid #000000;
+      transform-origin: center;
+      pointer-events: none;
+    }
+    .letter.show-dot::before {
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+    .letter.show-dot::after {
+      transform: translate(-50%, -50%);
+    }
+    .letter.show-dot.crossed::before {
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .letter.show-dot.crossed::after {
+      transform: translate(-50%, -50%) rotate(-45deg);
     }
     #tableContent {
       position: relative;
@@ -784,8 +813,14 @@
           ncolor.value = num;
         }
         document.querySelectorAll('span').forEach(span => {
-            if (span.color != color && span.id != "span-header") span.classList.add('other');
-            else if (span.classList.contains('other')) span.classList.remove('other');
+            if (span.color != color && span.id != "span-header") {
+              span.classList.add('other');
+              span.classList.remove('show-dot');
+            }
+            else if (span.classList.contains('other')) {
+              span.classList.remove('other');
+            }
+            if (span.color == color && span.id != "span-header") span.classList.add('show-dot');
         })
       }
     }
@@ -794,6 +829,7 @@
     function resetSelection() {
       document.querySelectorAll('span').forEach(span => {
         if (span.classList.contains('other')) span.classList.remove('other');
+        if (span.classList.contains('show-dot')) span.classList.remove('show-dot');
       })
       lastColor = null;
       ncolor.value = "";
